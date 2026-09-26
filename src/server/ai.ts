@@ -3,8 +3,9 @@ import "server-only";
 import OpenAI from "openai";
 import { analysisForDocument } from "@/domain/analyze-document";
 import { groundAnalysis } from "@/domain/grounding";
-import { modelAnalysisSchema } from "@/domain/schemas";
-import type { Analysis } from "@/domain/types";
+import { parseAIAnalysis } from "@/lib/validation";
+import type { AIAnalysis } from "@/lib/validation/ai-analysis.schema";
+import type { Analysis, SourcedItem } from "@/domain/types";
 import { answerFromProject } from "@/domain/chat";
 import { financialSummary } from "@/domain/calculations";
 import type { Project } from "@/domain/types";
@@ -17,6 +18,97 @@ function client(): OpenAI | null {
 
 function modelName(preferred?: string): string {
   return process.env.OPENAI_MODEL || preferred || "gpt-4.1-mini";
+}
+
+function cited(fact: { value: string; source: string; page: string | null; section: string | null }, id: string): SourcedItem {
+  return {
+    id,
+    text: fact.value,
+    page: fact.page,
+    section: fact.section,
+    excerpt: fact.source,
+    provenance: "DOCUMENT",
+  };
+}
+
+function analysisFromModel(data: AIAnalysis, now: string): Analysis {
+  const packagedTasks = new Set(data.workPackages.flatMap((item) => item.tasks));
+  const extraTasks = data.tasks.filter((task) => !packagedTasks.has(task.value));
+  return {
+    id: `analysis_${crypto.randomUUID()}`,
+    summary: data.summary,
+    engine: "OPENAI",
+    disclaimer: "Proposition du modèle, filtrée : toute citation absente du document a été écartée. L'estimateur doit vérifier. Aucun montant n'est calculé par le modèle.",
+    projectHints: data.project,
+    scope: data.scope.map((item, index) => cited(item, `scope_${index}`)),
+    requirements: data.requirements.map((item, index) => cited(item, `req_${index}`)),
+    detectedWork: [
+      ...data.workPackages.map((item, index) => ({
+        id: `work_${index}`,
+        name: item.value,
+        tasks: item.tasks.length ? item.tasks : [item.value],
+        page: item.page,
+        section: item.section,
+        excerpt: item.source,
+      })),
+      ...extraTasks.map((item, index) => ({
+        id: `task_${index}`,
+        name: item.value,
+        tasks: [item.value],
+        page: item.page,
+        section: item.section,
+        excerpt: item.source,
+      })),
+    ],
+    quantities: data.quantities.map((item, index) => cited(item, `qty_${index}`)),
+    deadlines: data.deadlines.map((item, index) => cited(item, `delay_${index}`)),
+    requiredDocuments: data.documentsRequired.map((item, index) => ({
+      id: `docreq_${index}`,
+      name: item.value,
+      page: item.page,
+      section: item.section,
+      excerpt: item.source,
+      received: false,
+    })),
+    constraints: data.constraints.map((item, index) => cited(item, `constraint_${index}`)),
+    risks: data.risks.map((item, index) => ({
+      id: `risk_ai_${index}`,
+      title: item.value,
+      probability: item.probability,
+      impact: item.impact,
+      level: item.level,
+      potentialCostCents: null,
+      mitigation: "",
+      owner: "Estimateur",
+      status: "OPEN" as const,
+      justification: item.source,
+      page: item.page,
+      section: item.section,
+      provenance: "DOCUMENT" as const,
+    })),
+    assumptions: data.assumptions.map((item, index) => ({
+      id: `assum_ai_${index}`,
+      description: item.value,
+      sourceLabel: item.source || "Proposition du modèle — à confirmer",
+      page: item.page,
+      section: item.section,
+      potentialImpact: item.impact,
+      status: "OPEN" as const,
+      provenance: "AI" as const,
+    })),
+    missing: data.missingInformation.map((item, index) => ({
+      id: `missing_ai_${index}`,
+      description: item.value,
+      importance: item.importance,
+      sourceLabel: item.source || "",
+      page: item.page,
+      section: item.section,
+      requiredAction: item.action,
+      status: "OPEN" as const,
+      note: "",
+    })),
+    createdAt: now,
+  };
 }
 
 export async function analyzeTenderText(documentText: string, now: string, preferredModel?: string): Promise<Analysis> {
@@ -34,11 +126,13 @@ export async function analyzeTenderText(documentText: string, now: string, prefe
           role: "system",
           content: [
             "Tu aides un estimateur naval. Tu ne remplaces pas son jugement.",
-            "Retourne uniquement un JSON avec les clés summary, project, scope, requirements, workPackages, quantities, deadlines, requiredDocuments, constraints, risks, assumptions, missingInformation.",
-            "N'invente aucun fait. Chaque élément factuel doit contenir un excerpt copié mot pour mot du document.",
-            "Si l'information est absente, utilise null ou une liste vide.",
-            "Ne calcule aucun prix.",
-            "Un risque sans phrase du document qui le justifie ne doit pas être proposé.",
+            "Retourne uniquement un JSON avec les clés summary, project, scope, requirements, workPackages, tasks, quantities, deadlines, documentsRequired, constraints, risks, assumptions, missingInformation.",
+            "Chaque fait du document a la forme { value, source, page, section, status }.",
+            "source est une citation copiée mot pour mot. status vaut AI_GENERATED.",
+            "N'invente aucun fait. Si l'information est absente, utilise null ou une liste vide.",
+            "Ne calcule aucun prix, aucune heure et aucun total. N'ajoute pas de champ monétaire.",
+            "Un risque sans citation du document ne doit pas être proposé.",
+            "Risque : { value, source, page, section, status, probability, impact, level } avec LOW, MEDIUM, HIGH ou CRITICAL.",
             "project: { name, client, vessel, deadline } avec null si absent.",
           ].join(" "),
         },
@@ -50,61 +144,9 @@ export async function analyzeTenderText(documentText: string, now: string, prefe
     });
     const content = completion.choices[0]?.message?.content;
     if (!content) return local();
-    const parsed = modelAnalysisSchema.safeParse(JSON.parse(content));
+    const parsed = parseAIAnalysis(JSON.parse(content));
     if (!parsed.success) return local();
-    const data = parsed.data;
-    const proposed: Analysis = {
-      id: `analysis_${crypto.randomUUID()}`,
-      summary: data.summary,
-      engine: "OPENAI",
-      disclaimer: "Proposition du modèle, filtrée : toute citation absente du document a été écartée. L'estimateur doit vérifier.",
-      projectHints: data.project,
-      scope: data.scope.map((item, index) => ({ id: `scope_${index}`, ...item, provenance: "DOCUMENT" as const })),
-      requirements: data.requirements.map((item, index) => ({ id: `req_${index}`, ...item, provenance: "DOCUMENT" as const })),
-      detectedWork: data.workPackages.map((item, index) => ({ id: `work_${index}`, ...item })),
-      quantities: data.quantities.map((item, index) => ({ id: `qty_${index}`, ...item, provenance: "DOCUMENT" as const })),
-      deadlines: data.deadlines.map((item, index) => ({ id: `delay_${index}`, ...item, provenance: "DOCUMENT" as const })),
-      requiredDocuments: data.requiredDocuments.map((item, index) => ({ id: `docreq_${index}`, received: false, ...item })),
-      constraints: data.constraints.map((item, index) => ({ id: `constraint_${index}`, ...item, provenance: "DOCUMENT" as const })),
-      risks: data.risks.map((item, index) => ({
-        id: `risk_ai_${index}`,
-        title: item.title,
-        probability: item.probability === "CRITICAL" ? "HIGH" : item.probability,
-        impact: item.impact === "CRITICAL" ? "HIGH" : item.impact,
-        level: item.level,
-        potentialCostCents: null,
-        mitigation: "",
-        owner: "Estimateur",
-        status: "OPEN",
-        justification: item.justification,
-        page: item.page,
-        section: item.section,
-        provenance: "DOCUMENT",
-      })),
-      assumptions: data.assumptions.map((item, index) => ({
-        id: `assum_ai_${index}`,
-        description: item.description,
-        sourceLabel: "Proposition du modèle — à confirmer",
-        page: null,
-        section: null,
-        potentialImpact: item.impact,
-        status: "OPEN",
-        provenance: "AI",
-      })),
-      missing: data.missingInformation.map((item, index) => ({
-        id: `missing_ai_${index}`,
-        description: item.description,
-        importance: item.importance,
-        sourceLabel: item.excerpt ?? "",
-        page: item.page,
-        section: item.section,
-        requiredAction: item.action,
-        status: "OPEN",
-        note: "",
-      })),
-      createdAt: now,
-    };
-    const grounded = groundAnalysis(documentText, proposed);
+    const grounded = groundAnalysis(documentText, analysisFromModel(parsed.data, now));
     if (!grounded.scope.length && !grounded.quantities.length && !grounded.requirements.length) {
       return local();
     }

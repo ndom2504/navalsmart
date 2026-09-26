@@ -4,6 +4,9 @@ import { financialSummary } from "@/domain/calculations";
 import { emptyProject } from "@/domain/demo";
 import { mergeFindings } from "@/domain/review";
 import type { Analysis, AuditEntry, Database, Project, TenderDocument } from "@/domain/types";
+import { parseEstimate, parseMissingInformation, parseRisk } from "@/lib/validation";
+import { assumptionSchema } from "@/lib/validation/assumption.schema";
+import { parseWith } from "@/lib/validation/result";
 import { findProject, readDatabase, updateDatabase } from "@/server/store";
 import { id } from "@/lib/utils";
 
@@ -325,7 +328,7 @@ export async function applyAnalysis(projectId: string, analysis: Analysis): Prom
           const quotedHours = hoursFromQuantities(analysis, task.name);
           const rate = database.settings.laborRates[0]?.hourlyRateCents ?? 0;
           const lineId = id("line");
-          project.lines.push({
+          const line = {
             id: lineId,
             workPackageId: packageId,
             taskId: task.id,
@@ -343,35 +346,43 @@ export async function applyAnalysis(projectId: string, analysis: Analysis): Prom
             sourceLabel: quotedHours ? "Appel d'offres" : "Portée détectée — quantité non citée",
             page: work.page,
             section: work.section,
-            provenance: quotedHours ? "DOCUMENT" : "AI",
-            status: "AI_GENERATED",
+            provenance: quotedHours ? "DOCUMENT" as const : "AI" as const,
+            status: "AI_GENERATED" as const,
             explanation: quotedHours
-              ? "Heures citées dans le document. Le taux vient du barème de simulation, pas du document."
+              ? "Heures citées dans le document. Le taux vient du barème, pas du modèle."
               : "Tâche détectée dans la portée. Aucune quantité chiffrée n'a été inventée.",
             origins: {
-              hours: quotedHours ? "DOCUMENT" : "AI",
-              rate: quotedHours ? "USER" : "AI",
-              materials: "AI",
-              equipment: "AI",
-              subcontract: "AI",
-              logistics: "AI",
-              other: "AI",
+              hours: quotedHours ? "DOCUMENT" as const : "AI" as const,
+              rate: quotedHours ? "USER" as const : "AI" as const,
+              materials: "AI" as const,
+              equipment: "AI" as const,
+              subcontract: "AI" as const,
+              logistics: "AI" as const,
+              other: "AI" as const,
             },
-          });
+          };
+          const parsedLine = parseEstimate(line);
+          if (parsedLine.success) project.lines.push(parsedLine.data);
         }
       });
     }
     for (const risk of analysis.risks) {
       if (project.risks.some((item) => item.title === risk.title)) continue;
-      project.risks.push({ ...risk, id: id("risk") });
+      const parsedRisk = parseRisk({
+        ...risk,
+        potentialCostCents: risk.provenance === "USER" ? risk.potentialCostCents : null,
+      });
+      if (parsedRisk.success) project.risks.push({ ...parsedRisk.data, id: id("risk") });
     }
     for (const item of analysis.missing) {
       if (project.missing.some((current) => current.description === item.description)) continue;
-      project.missing.push({ ...item, id: id("miss") });
+      const parsedMissing = parseMissingInformation(item);
+      if (parsedMissing.success) project.missing.push({ ...parsedMissing.data, id: id("miss") });
     }
     for (const item of analysis.assumptions) {
       if (project.assumptions.some((current) => current.description === item.description)) continue;
-      project.assumptions.push({ ...item, id: id("assum") });
+      const parsedAssumption = parseWith(assumptionSchema, item);
+      if (parsedAssumption.success) project.assumptions.push({ ...parsedAssumption.data, id: id("assum") });
     }
     if (project.status === "DRAFT" || project.status === "IN_ANALYSIS") project.status = "IN_ESTIMATION";
     audit(project, {
