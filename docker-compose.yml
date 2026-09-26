@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: navalsmart
+      POSTGRES_PASSWORD: navalsmart
+      POSTGRES_DB: navalsmart
+    ports:
+      - "5432:5432"
+    volumes:
+      - navalsmart_pg:/var/lib/postgresql/data
+
+volumes:
+  navalsmart_pg:

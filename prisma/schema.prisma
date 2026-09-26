@@ -1,0 +1,508 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ProjectType {
+  CONSTRUCTION
+  REPAIR
+  MAINTENANCE
+  CONVERSION
+  MECHANICAL
+  ELECTRICAL
+  OTHER
+}
+
+enum ProjectStatus {
+  DRAFT
+  IN_ANALYSIS
+  IN_ESTIMATION
+  TO_VALIDATE
+  VALIDATED
+  SUBMITTED
+}
+
+enum LineStatus {
+  AI_GENERATED
+  USER_VERIFIED
+  USER_MODIFIED
+}
+
+enum Provenance {
+  DOCUMENT
+  USER
+  AI
+  SYSTEM
+}
+
+enum AnalysisEngine {
+  LOCAL
+  OPENAI
+}
+
+enum DocumentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum QuoteStatus {
+  REQUESTED
+  RECEIVED
+  TO_VERIFY
+  VALIDATED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RecordStatus {
+  OPEN
+  ACCEPTED
+  RESOLVED
+  IGNORED
+  REJECTED
+}
+
+enum ReviewSeverity {
+  CRITICAL
+  WARNING
+  INFO
+}
+
+enum ReviewStatus {
+  PENDING
+  ACCEPTED
+  IGNORED
+  MODIFIED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+model User {
+  id           String           @id @default(cuid())
+  name         String
+  email        String           @unique
+  passwordHash String
+  role         String
+  jobTitle     String
+  companyName  String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  settings     CompanySettings?
+  projects     Project[]
+  suppliers    Supplier[]
+  auditLogs    AuditLog[]
+}
+
+model CompanySettings {
+  id                   String  @id @default(cuid())
+  userId               String  @unique
+  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currency             String
+  contingencyPct       Float
+  overheadPct          Float
+  marginPct            Float
+  overtimeFactor       Float
+  defaultLearningMode  Boolean @default(false)
+  notifyMissing        Boolean @default(true)
+  notifyRisks          Boolean @default(true)
+  notifyQuotes         Boolean @default(true)
+  laborRates           Json
+  units                Json
+  aiModel              String
+  completenessWeights  Json
+}
+
+model Project {
+  id                  String        @id @default(cuid())
+  userId              String
+  user                User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name                String
+  client              String
+  vessel              String
+  type                ProjectType
+  location            String
+  receivedAt          DateTime?
+  submissionDeadline  DateTime?
+  plannedStart        DateTime?
+  plannedEnd          DateTime?
+  currency            String
+  description         String
+  status              ProjectStatus @default(DRAFT)
+  learningMode        Boolean       @default(false)
+  contingencyPct      Float
+  overheadPct         Float
+  marginPct           Float
+  overtimeFactor      Float
+  validationNote      String        @default("")
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  tender              Tender?
+  workPackages        WorkPackage[]
+  estimate            Estimate?
+  laborCosts          LaborCost[]
+  materialCosts       MaterialCost[]
+  equipmentCosts      EquipmentCost[]
+  quotes              SupplierQuote[]
+  subcontractors      Subcontractor[]
+  risks               Risk[]
+  assumptions         Assumption[]
+  missingInformation  MissingInformation[]
+  reviews             AIReview[]
+  messages            AIMessage[]
+  auditLogs           AuditLog[]
+
+  @@index([userId])
+}
+
+model Tender {
+  id         String           @id @default(cuid())
+  projectId  String           @unique
+  project    Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title      String
+  documents  TenderDocument[]
+  analysis   TenderAnalysis?
+}
+
+model TenderDocument {
+  id             String         @id @default(cuid())
+  tenderId       String
+  tender         Tender         @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  fileName       String
+  mimeType       String
+  sizeBytes      Int
+  pageCount      Int?
+  storedPath     String
+  extractedText  String
+  status         DocumentStatus @default(PENDING)
+  importedAt     DateTime       @default(now())
+}
+
+model TenderAnalysis {
+  id               String         @id @default(cuid())
+  tenderId         String         @unique
+  tender           Tender         @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  summary          String
+  engine           AnalysisEngine
+  disclaimer       String
+  hintedName       String?
+  hintedClient     String?
+  hintedVessel     String?
+  hintedDeadline   String?
+  scope            Json
+  requirements     Json
+  detectedWork     Json
+  quantities       Json
+  deadlines        Json
+  requiredDocs     Json
+  constraints      Json
+  proposedRisks    Json
+  proposedAssumptions Json
+  proposedMissing  Json
+  createdAt        DateTime       @default(now())
+}
+
+model WorkPackage {
+  id          String          @id @default(cuid())
+  projectId   String
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  code        String
+  sortOrder   Int
+  tasks       Task[]
+  lines       EstimateLine[]
+  quotes      SupplierQuote[]
+  subcontractors Subcontractor[]
+
+  @@index([projectId])
+}
+
+model Task {
+  id            String         @id @default(cuid())
+  workPackageId String
+  workPackage   WorkPackage    @relation(fields: [workPackageId], references: [id], onDelete: Cascade)
+  name          String
+  description   String         @default("")
+  sortOrder     Int
+  lines         EstimateLine[]
+  laborCosts    LaborCost[]
+
+  @@index([workPackageId])
+}
+
+model Estimate {
+  id              String             @id @default(cuid())
+  projectId       String             @unique
+  project         Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  currency        String
+  directCents     Int                @default(0)
+  indirectCents   Int                @default(0)
+  riskCents       Int                @default(0)
+  estimatedCents  Int                @default(0)
+  bidCents        Int                @default(0)
+  lines           EstimateLine[]
+  revisions       EstimateRevision[]
+  updatedAt       DateTime           @updatedAt
+}
+
+model EstimateLine {
+  id                String      @id @default(cuid())
+  estimateId        String
+  estimate          Estimate    @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  workPackageId     String?
+  workPackage       WorkPackage? @relation(fields: [workPackageId], references: [id], onDelete: SetNull)
+  taskId            String?
+  task              Task?       @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  lot               String
+  description       String
+  quantity          Float
+  unit              String
+  hours             Float
+  hourlyRateCents   Int
+  materialsCents    Int         @default(0)
+  equipmentCents    Int         @default(0)
+  subcontractCents  Int         @default(0)
+  logisticsCents    Int         @default(0)
+  otherCents        Int         @default(0)
+  sourceLabel       String
+  page              String?
+  section           String?
+  provenance        Provenance
+  status            LineStatus
+  explanation       String
+  origins           Json
+  laborCosts        LaborCost[]
+  materialCosts     MaterialCost[]
+  equipmentCosts    EquipmentCost[]
+  subcontractors    Subcontractor[]
+
+  @@index([estimateId])
+}
+
+model EstimateRevision {
+  id          String   @id @default(cuid())
+  estimateId  String
+  estimate    Estimate @relation(fields: [estimateId], references: [id], onDelete: Cascade)
+  label       String
+  snapshot    Json
+  createdAt   DateTime @default(now())
+}
+
+model LaborCost {
+  id                  String        @id @default(cuid())
+  projectId           String
+  project             Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId              String?
+  task                Task?         @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  estimateLineId      String?
+  estimateLine        EstimateLine? @relation(fields: [estimateLineId], references: [id], onDelete: SetNull)
+  category            String
+  trade               String
+  workers             Float
+  hours               Float
+  hourlyRateCents     Int
+  overtimeHours       Float         @default(0)
+  productivityFactor  Float         @default(1)
+  overtimeFactor      Float         @default(1.5)
+
+  @@index([projectId])
+}
+
+model MaterialCost {
+  id              String        @id @default(cuid())
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  estimateLineId  String?
+  estimateLine    EstimateLine? @relation(fields: [estimateLineId], references: [id], onDelete: SetNull)
+  supplierId      String?
+  supplier        Supplier?     @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  description     String
+  quantity        Float
+  unit            String
+  unitPriceCents  Int
+  transportCents  Int           @default(0)
+  wasteCents      Int           @default(0)
+
+  @@index([projectId])
+}
+
+model EquipmentCost {
+  id              String        @id @default(cuid())
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  estimateLineId  String?
+  estimateLine    EstimateLine? @relation(fields: [estimateLineId], references: [id], onDelete: SetNull)
+  name            String
+  quantity        Float
+  duration        Float
+  durationUnit    String
+  rateCents       Int
+  transportCents  Int           @default(0)
+
+  @@index([projectId])
+}
+
+model Supplier {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  contact     String
+  category    String
+  description String
+  currency    String
+  materials   MaterialCost[]
+  quotes      SupplierQuote[]
+
+  @@index([userId])
+}
+
+model SupplierQuote {
+  id            String       @id @default(cuid())
+  projectId     String
+  project       Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  supplierId    String
+  supplier      Supplier     @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  workPackageId String?
+  workPackage   WorkPackage? @relation(fields: [workPackageId], references: [id], onDelete: SetNull)
+  priceCents    Int?
+  currency      String
+  validUntil    String?
+  leadTime      String
+  included      String
+  excluded      String
+  documentName  String?
+  status        QuoteStatus
+
+  @@index([projectId])
+}
+
+model Subcontractor {
+  id              String        @id @default(cuid())
+  projectId       String
+  project         Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workPackageId   String?
+  workPackage     WorkPackage?  @relation(fields: [workPackageId], references: [id], onDelete: SetNull)
+  estimateLineId  String?
+  estimateLine    EstimateLine? @relation(fields: [estimateLineId], references: [id], onDelete: SetNull)
+  name            String
+  contact         String
+  category        String
+  description     String
+  priceCents      Int?
+  currency        String
+  validUntil      String?
+  leadTime        String
+  included        String
+  excluded        String
+  documentName    String?
+  status          QuoteStatus
+
+  @@index([projectId])
+}
+
+model Risk {
+  id                 String     @id @default(cuid())
+  projectId          String
+  project            Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title              String
+  probability        RiskLevel
+  impact             RiskLevel
+  level              RiskLevel
+  potentialCostCents Int?
+  mitigation         String
+  owner              String
+  status             RecordStatus @default(OPEN)
+  justification      String
+  page               String?
+  section            String?
+  provenance         Provenance
+
+  @@index([projectId])
+}
+
+model Assumption {
+  id              String       @id @default(cuid())
+  projectId       String
+  project         Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  description     String
+  sourceLabel     String
+  page            String?
+  section         String?
+  potentialImpact String
+  status          RecordStatus @default(OPEN)
+  provenance      Provenance
+
+  @@index([projectId])
+}
+
+model MissingInformation {
+  id             String       @id @default(cuid())
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  description    String
+  importance     RiskLevel
+  sourceLabel    String
+  page           String?
+  section        String?
+  requiredAction String
+  status         RecordStatus @default(OPEN)
+  note           String       @default("")
+
+  @@index([projectId])
+}
+
+model AIReview {
+  id         String         @id @default(cuid())
+  projectId  String
+  project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code       String
+  severity   ReviewSeverity
+  title      String
+  detail     String
+  status     ReviewStatus   @default(PENDING)
+  note       String         @default("")
+  createdAt  DateTime       @default(now())
+
+  @@index([projectId])
+}
+
+model AIMessage {
+  id        String      @id @default(cuid())
+  projectId String
+  project   Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  role      MessageRole
+  content   String
+  createdAt DateTime    @default(now())
+
+  @@index([projectId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actor     String
+  entity    String
+  summary   String
+  source    String
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@index([userId])
+}
