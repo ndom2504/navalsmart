@@ -1,0 +1,147 @@
+--- Page 1 ---
+NAVALSMART
+# APPEL D’OFFRES – RÉNOVATION ET MODERNISATION
+# DU NAVIRE HORIZON
+Référence : AO-NAV-2026-014 — DOCUMENT FICTIF POUR TEST
+Émetteur | Atlantic Maritime Services Inc. (société fictive)
+Navire | MV HORIZON – Ferry passagers et véhicules
+Port des travaux | Chantier naval fictif de Port-Laurent, Québec
+Date limite | 30 novembre 2026 à 16 h 00 (heure de Québec)
+## 1. Identification de l’appel d’offres
+• Référence : AO-NAV-2026-014
+• Émetteur : Atlantic Maritime Services Inc. (société fictive)
+• Navire : MV HORIZON – Ferry passagers et véhicules
+• Port principal des travaux : Chantier naval fictif de Port-Laurent, Québec
+• Type de marché : forfaitaire avec prix unitaires pour travaux additionnels autorisés
+• Date limite de réception des offres : 30 novembre 2026 à 16 h 00 (heure de Québec)
+• Validité minimale de l’offre : 90 jours civils après la date limite de soumission.
+## 2. Objet du marché
+• Le présent appel d’offres vise la rénovation partielle et la modernisation de plusieurs systèmes du MV HORIZON,
+incluant des travaux de coque, de mécanique, d’électricité, d’aménagement intérieur et de peinture.
+• Le soumissionnaire doit fournir la main-d’œuvre, les matériaux, l’équipement, la supervision, les consommables et les
+moyens temporaires nécessaires à l’exécution des travaux, sauf indication contraire.
+• Les travaux devront être coordonnés afin de limiter l’immobilisation du navire et de respecter les exigences de sécurité
+du chantier.
+## 3. Description technique du navire
+• Longueur hors tout : 118 m
+• Largeur : 21,4 m
+• Jauge brute approximative : 8 900 GT
+• Propulsion : 2 moteurs diesel principaux
+• Capacité : environ 900 passagers et 220 véhicules
+• Année de construction : 2008
+• Classification : société de classification internationale – détails à confirmer avant démarrage
+## 4. Travaux demandés
+• WP-01 – Inspection et préparation de la coque : inspection visuelle, relevés d’épaisseur sur zones sélectionnées,
+préparation des surfaces et remplacement localisé de tôles.
+• WP-02 – Réparation de structure : remplacement d’environ 35 m² de tôles acier et de raidisseurs associés. Les
+quantités finales seront confirmées après inspection.
+
+--- Page 2 ---
+• WP-03 – Système de tuyauterie : remplacement d’environ 120 m de tuyauterie acier et acier inoxydable dans les
+locaux techniques; essais de pression inclus.
+• WP-04 – Électricité : remplacement de 18 luminaires, ajout de 24 prises industrielles et modification de deux petits
+tableaux électriques.
+• WP-05 – Ventilation : inspection et nettoyage de quatre réseaux principaux, remplacement de 16 registres et
+équilibrage des débits.
+• WP-06 – Aménagement intérieur : remplacement d’environ 85 m² de revêtement de sol, réparation de cloisons et
+remise en état de deux locaux d’équipage.
+• WP-07 – Peinture : préparation mécanique et application d’un système de peinture marin sur environ 1 800 m² de
+surfaces extérieures. Le système de peinture définitif sera approuvé avant application.
+• WP-08 – Essais et remise en service : essais fonctionnels, inspections finales, correction des déficiences et remise
+d’un dossier de clôture.
+## 5. Quantités indicatives
+• Acier à remplacer : 35 m² (±25 %)
+• Tuyauterie : 120 m (±20 %)
+• Revêtement de sol : 85 m² (±15 %)
+• Peinture extérieure : 1 800 m² (±15 %)
+• Luminaires : 18 unités
+• Prises industrielles : 24 unités
+• Registres de ventilation : 16 unités
+• Les quantités sont indicatives et doivent être vérifiées par le soumissionnaire.
+## 6. Calendrier prévisionnel
+• Visite technique facultative : 15 octobre 2026
+• Questions des soumissionnaires : au plus tard le 23 octobre 2026
+• Réponses de l’acheteur : au plus tard le 30 octobre 2026
+• Date limite de soumission : 30 novembre 2026 à 16 h 00 (heure de Québec)
+• Notification prévue : 7 décembre 2026
+• Mobilisation prévue : 4 janvier 2027
+• Début des travaux à bord : 11 janvier 2027
+• Durée cible : 12 semaines
+• Achèvement cible : 2 avril 2027
+• Les dates de mobilisation et d’achèvement sont sujettes à confirmation selon la disponibilité du navire.
+## 7. Exigences relatives à la soumission
+• Le soumissionnaire doit fournir un prix forfaitaire pour chaque lot de travaux et un prix total.
+• Fournir séparément les taux horaires applicables aux travaux additionnels : soudeur, tuyauteur, électricien,
+mécanicien, peintre et manœuvre.
+• Identifier les exclusions, hypothèses, limites de responsabilité et dépendances envers le propriétaire.
+• Fournir une estimation des délais par lot.
+• Identifier au minimum trois risques principaux liés à l’exécution.
+• Fournir une liste des principaux fournisseurs et sous-traitants envisagés.
+
+--- Page 3 ---
+• Présenter les exigences de paiement, les garanties proposées et la durée de validité de l’offre.
+## 8. Conditions commerciales
+• Devise : CAD.
+• Les prix doivent inclure la main-d’œuvre, les matériaux standards, les équipements usuels, les consommables et les
+frais généraux du soumissionnaire, sauf exclusions clairement identifiées.
+• Les taxes doivent être indiquées séparément.
+• Une retenue de 10 % pourra être appliquée jusqu’à l’acceptation finale des travaux.
+• Paiement proposé : 30 jours suivant réception d’une facture conforme.
+• Les travaux supplémentaires doivent être approuvés par écrit avant leur exécution, sauf situation urgente liée à la
+sécurité.
+## 9. Sécurité et qualité
+• Tous les travaux doivent être réalisés conformément aux procédures de sécurité du chantier et aux exigences
+applicables au navire.
+• Le soumissionnaire doit fournir les fiches techniques, certificats de matériaux et rapports d’essais applicables.
+• Les travaux de soudage devront être réalisés par du personnel qualifié conformément aux procédures approuvées.
+• Un plan qualité et un plan de prévention doivent être soumis avant mobilisation.
+• Tout défaut constaté lors de la réception doit être corrigé avant la clôture du lot concerné.
+## 10. Documents à remettre
+• Offre financière détaillée
+• Décomposition des coûts par lot
+• Échéancier prévisionnel
+• Organigramme de projet
+• Liste des ressources clés
+• Liste des fournisseurs et sous-traitants
+• Registre initial des risques
+• Registre des hypothèses et exclusions
+• Plan qualité
+• Plan de sécurité
+• Dossier final de remise en service et rapports d’essais
+## 11. Informations à confirmer
+• Le dossier technique ne précise pas encore l’épaisseur exacte des tôles à remplacer.
+• Le système de peinture définitif et les spécifications de préparation de surface seront confirmés après la visite
+technique.
+• Les plans électriques existants sont disponibles, mais leur dernière révision doit être confirmée.
+• Les exigences détaillées de la société de classification sont à confirmer.
+• Les fenêtres exactes d’accès au navire et les contraintes de coactivité seront communiquées avant mobilisation.
+• Le soumissionnaire doit clairement identifier dans son offre les éléments qui nécessitent une information
+complémentaire.
+## 12. Critères administratifs de soumission
+
+--- Page 4 ---
+• Présentation de l’entreprise et expérience pertinente
+• Expérience en travaux navals ou industriels comparables
+• Capacité de mobilisation
+• Approche de gestion de projet
+• Approche qualité et sécurité
+• Prix et structure commerciale
+• Délais proposés
+• Références de projets similaires
+## 13. Instructions finales
+• Les soumissionnaires doivent signaler toute incohérence, omission ou information insuffisante avant la date limite des
+questions.
+• Les offres reçues après la date limite peuvent être déclarées non conformes.
+• L’acheteur se réserve le droit de demander des clarifications sur les offres reçues.
+• Ce document est un document fictif créé exclusivement pour tester l’application NavalSmart. Il ne constitue pas un
+appel d’offres réel et aucune entreprise ou navire mentionné ici ne représente nécessairement une entité réelle.
+## Annexe A — Données structurées utiles à l’estimation
+Lot | Quantité | Unité | Tolérance
+WP-02 Structure | 35 | m² | ±25 %
+WP-03 Tuyauterie | 120 | m | ±20 %
+WP-04 Électricité – luminaires | 18 | unités | à confirmer
+WP-04 Électricité – prises | 24 | unités | à confirmer
+WP-05 Ventilation – registres | 16 | unités | à confirmer
+WP-06 Revêtement de sol | 85 | m² | ±15 %
+WP-07 Peinture | 1 800 | m² | ±15 %
+FIN DU DOCUMENT — APPEL D’OFFRES FICTIF NAVALSMART

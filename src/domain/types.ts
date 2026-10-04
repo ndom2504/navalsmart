@@ -1,3 +1,5 @@
+import type { TenderAnalysis } from "@/lib/validation/tender-analysis.schema";
+
 export type ProjectType =
   | "CONSTRUCTION"
   | "REPAIR"
@@ -60,6 +62,43 @@ export interface LaborRate {
   hourlyRateCents: number;
 }
 
+/** Ouvrage de la bibliothèque : coûts par unité saisis par l'utilisateur, appliqués aux quantités du document. */
+export interface UnitCost {
+  id: string;
+  name: string;
+  /** Mots qui rattachent un lot ou une tâche à cet ouvrage ; le nom sert à défaut. */
+  keywords: string[];
+  unit: string;
+  trade: string;
+  hoursPerUnit: number | null;
+  materialsCentsPerUnit: number | null;
+  equipmentCentsPerUnit: number | null;
+  subcontractCentsPerUnit: number | null;
+}
+
+export interface MarketSettings {
+  /** Pré-remplit les estimations avec le référentiel de marché quand vos propres valeurs manquent. */
+  enabled: boolean;
+  defaultRegion: string;
+}
+
+/** Ouvrage proposé par le modèle pour un marché, mis en cache pour les estimations suivantes. */
+export interface AiMarketActivity {
+  id: string;
+  region: string;
+  currency: string;
+  name: string;
+  keywords: string[];
+  unit: string;
+  trade: string;
+  hoursPerUnit: number | null;
+  materialsPerUnit: number | null;
+  equipmentPerUnit: number | null;
+  rationale: string;
+  model: string;
+  createdAt: string;
+}
+
 export interface AppSettings {
   currency: string;
   contingencyPct: number;
@@ -73,6 +112,8 @@ export interface AppSettings {
     supplierQuotes: boolean;
   };
   laborRates: LaborRate[];
+  unitCosts: UnitCost[];
+  market: MarketSettings;
   units: string[];
   aiModel: string;
   completenessWeights: Record<string, number>;
@@ -245,6 +286,8 @@ export interface SourcedItem {
 
 export interface DetectedWork {
   id: string;
+  /** Code du lot tel qu'écrit dans le document (ex. WP-02). */
+  code?: string | null;
   name: string;
   tasks: string[];
   page: string | null;
@@ -282,6 +325,8 @@ export interface Analysis {
   risks: Risk[];
   assumptions: Assumption[];
   missing: MissingInformation[];
+  /** Extraction complète validée par Zod : source, type de source, confiance et qualificatifs. */
+  structured?: TenderAnalysis;
   createdAt: string;
 }
 
@@ -337,6 +382,65 @@ export interface AuditEntry {
   createdAt: string;
 }
 
+export type MilestoneKind = "DEADLINE" | "MILESTONE" | "DURATION" | "PERIOD";
+
+export interface ProjectMilestone {
+  id: string;
+  label: string;
+  date: string | null;
+  time: string | null;
+  kind: MilestoneKind;
+  toConfirm: boolean;
+  page: string | null;
+  section: string | null;
+  excerpt: string | null;
+  provenance: Provenance;
+}
+
+export type WorkOrderStatus = "TO_PLAN" | "PLANNED" | "IN_PROGRESS" | "DONE" | "BLOCKED";
+
+export interface WorkOrder {
+  id: string;
+  /** Numéro lisible, ex. OT-001. */
+  number: string;
+  workPackageId: string | null;
+  taskId: string | null;
+  code: string;
+  title: string;
+  description: string;
+  trade: string;
+  assignee: string;
+  status: WorkOrderStatus;
+  plannedStart: string | null;
+  plannedEnd: string | null;
+  actualStart: string | null;
+  actualEnd: string | null;
+  /** AI = dates proposées par répartition, à valider ; USER = saisies. */
+  datesProvenance: Provenance;
+  /** Heures reprises des lignes d'estimation ; jamais inventées. */
+  plannedHours: number | null;
+  actualHours: number | null;
+  quantity: number | null;
+  unit: string | null;
+  progressPct: number;
+  /** Identifiants des ordres de travail préalables. */
+  dependsOn: string[];
+  /** Identifiants des informations manquantes qui bloquent l'ordre. */
+  blockers: string[];
+  page: string | null;
+  section: string | null;
+  excerpt: string | null;
+  provenance: Provenance;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectAvatar {
+  storedPath: string;
+  mimeType: "image/png" | "image/jpeg" | "image/webp";
+  updatedAt: string;
+}
+
 export interface Project {
   id: string;
   name: string;
@@ -349,6 +453,10 @@ export interface Project {
   plannedStart: string | null;
   plannedEnd: string | null;
   currency: string;
+  /** Marché de référence choisi ; à défaut, déduit du lieu puis de la devise. */
+  marketRegion?: string | null;
+  /** Image du projet, servie par /api/estimates/[id]/avatar. */
+  avatar?: ProjectAvatar | null;
   description: string;
   status: ProjectStatus;
   learningMode: boolean;
@@ -369,6 +477,8 @@ export interface Project {
   risks: Risk[];
   assumptions: Assumption[];
   missing: MissingInformation[];
+  milestones: ProjectMilestone[];
+  workOrders: WorkOrder[];
   reviews: AIReviewItem[];
   messages: AIMessage[];
   revisions: EstimateRevision[];
@@ -384,6 +494,7 @@ export interface Database {
   settings: AppSettings;
   suppliers: Supplier[];
   projects: Project[];
+  aiMarketActivities?: AiMarketActivity[];
   /** Mode actif, posé à la lecture. Il n'est pas enregistré dans chaque espace. */
   workspaceMode?: WorkspaceMode;
 }

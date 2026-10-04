@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { createEstimateAction } from "@/server/actions";
 import { Button } from "@/components/ui/button";
+import { PROJECT_CURRENCIES } from "@/domain/market";
 import { projectTypeLabels } from "@/lib/labels";
 import type { ProjectType } from "@/domain/types";
 
@@ -62,9 +63,7 @@ export function NewEstimateForm({ learningDefault }: { learningDefault: boolean 
         <label className="block text-sm">
           <span className="mb-1 block font-medium">Devise</span>
           <select name="currency" className={field} defaultValue="CAD">
-            <option value="CAD">CAD</option>
-            <option value="USD">USD</option>
-            <option value="EUR">EUR</option>
+            {PROJECT_CURRENCIES.map((item) => <option key={item.code} value={item.code}>{item.label}</option>)}
           </select>
         </label>
         <Field label="Date de réception" name="receivedAt" type="date" />

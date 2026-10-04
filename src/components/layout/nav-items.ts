@@ -1,4 +1,5 @@
 import {
+  CalendarRange,
   CircleDollarSign,
   ClipboardList,
   FileBarChart,
@@ -15,6 +16,7 @@ export const navItems = [
   { href: "/dashboard", label: "Dashboard", short: "Accueil", icon: Home },
   { href: "/estimations", label: "Estimations", short: "Estimations", icon: ClipboardList },
   { href: "/appels-offres", label: "Appels d'offres", short: "Offres", icon: FolderOpen },
+  { href: "/planning", label: "Planning", short: "Planning", icon: CalendarRange },
   { href: "/couts", label: "Coûts", short: "Coûts", icon: CircleDollarSign },
   { href: "/fournisseurs", label: "Fournisseurs", short: "Fourniss.", icon: Truck },
   { href: "/sous-traitants", label: "Sous-traitants", short: "Sous-tr.", icon: Users },

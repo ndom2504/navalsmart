@@ -35,6 +35,7 @@ export const projectPatchSchema = createEstimateSchema.partial().extend({
   marginPct: z.number().min(0).max(100).optional(),
   overtimeFactor: z.number().min(1).max(3).optional(),
   validationNote: z.string().max(4000).optional(),
+  marketRegion: z.string().min(2).max(10).nullable().optional(),
 });
 
 const originsSchema = z.object({
@@ -190,6 +191,72 @@ export const missingSchema = z.object({
   note: z.string().max(1000),
 });
 
+const provenanceSchema = z.enum(["DOCUMENT", "USER", "AI", "SYSTEM"]);
+
+export const workOrderSchema = z.object({
+  id: z.string().min(1).max(80),
+  number: z.string().trim().min(1).max(20),
+  workPackageId: z.string().nullable(),
+  taskId: z.string().nullable(),
+  code: z.string().max(20),
+  title: z.string().trim().min(1).max(300),
+  description: z.string().max(2000),
+  trade: z.string().trim().max(120),
+  assignee: z.string().trim().max(160),
+  status: z.enum(["TO_PLAN", "PLANNED", "IN_PROGRESS", "DONE", "BLOCKED"]),
+  plannedStart: dateSchema,
+  plannedEnd: dateSchema,
+  actualStart: dateSchema,
+  actualEnd: dateSchema,
+  datesProvenance: provenanceSchema,
+  plannedHours: z.number().finite().nonnegative().nullable(),
+  actualHours: z.number().finite().nonnegative().nullable(),
+  quantity: z.number().finite().nonnegative().nullable(),
+  unit: z.string().max(40).nullable(),
+  progressPct: z.number().min(0).max(100),
+  dependsOn: z.array(z.string().max(80)).max(50),
+  blockers: z.array(z.string().max(80)).max(50),
+  page: z.string().max(20).nullable(),
+  section: z.string().max(120).nullable(),
+  excerpt: z.string().max(2000).nullable(),
+  provenance: provenanceSchema,
+  createdAt: z.string().max(40),
+  updatedAt: z.string().max(40),
+}).refine((order) => !order.plannedStart || !order.plannedEnd || order.plannedStart <= order.plannedEnd, {
+  message: "La fin prévue précède le début prévu.",
+  path: ["plannedEnd"],
+}).refine((order) => !order.actualStart || !order.actualEnd || order.actualStart <= order.actualEnd, {
+  message: "La fin réelle précède le début réel.",
+  path: ["actualEnd"],
+});
+
+export const milestoneSchema = z.object({
+  id: z.string().min(1).max(80),
+  label: z.string().trim().min(1).max(200),
+  date: dateSchema,
+  time: z.string().regex(/^\d{2}:\d{2}$/).nullable(),
+  kind: z.enum(["DEADLINE", "MILESTONE", "DURATION", "PERIOD"]),
+  toConfirm: z.boolean(),
+  page: z.string().max(20).nullable(),
+  section: z.string().max(120).nullable(),
+  excerpt: z.string().max(2000).nullable(),
+  provenance: provenanceSchema,
+});
+
+const perUnit = z.number().nonnegative().max(1_000_000_000).nullable();
+
+export const unitCostSchema = z.object({
+  id: z.string().min(1).max(80),
+  name: z.string().trim().min(2, "Nommez chaque ouvrage de la bibliothèque.").max(120),
+  keywords: z.array(z.string().trim().min(2).max(60)).max(20),
+  unit: z.string().trim().min(1, "Indiquez l'unité de chaque ouvrage.").max(20),
+  trade: z.string().trim().max(80),
+  hoursPerUnit: perUnit,
+  materialsCentsPerUnit: perUnit,
+  equipmentCentsPerUnit: perUnit,
+  subcontractCentsPerUnit: perUnit,
+});
+
 export const settingsSchema = z.object({
   currency: z.string().regex(/^[A-Z]{3}$/),
   contingencyPct: z.number().min(0).max(100),
@@ -206,6 +273,8 @@ export const settingsSchema = z.object({
     trade: z.string().trim().min(2).max(80),
     hourlyRateCents: z.number().int().nonnegative(),
   })),
+  unitCosts: z.array(unitCostSchema).default([]),
+  market: z.object({ enabled: z.boolean(), defaultRegion: z.string().min(2).max(10) }).default({ enabled: true, defaultRegion: "CA-QC" }),
   units: z.array(z.string().trim().min(1).max(20)),
   aiModel: z.string().trim().min(2).max(80),
   completenessWeights: z.record(z.string(), z.number().positive()),

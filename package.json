@@ -8,15 +8,22 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test src/domain/*.test.ts",
+    "analyze:tender": "node --env-file-if-exists=.env --conditions=react-server --import tsx scripts/analyze-tender.ts",
+    "analyze:tender": "node --env-file-if-exists=.env --conditions=react-server --import tsx scripts/analyze-tender.ts",
     "db:validate": "prisma validate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "ios:sync": "cap sync ios",
+    "ios:open": "cap open ios"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/ios": "^8.5.2",
     "@prisma/adapter-pg": "^6.19.0",
     "@prisma/client": "^6.19.0",
     "@radix-ui/react-dialog": "^1.1.23",

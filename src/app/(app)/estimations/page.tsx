@@ -26,7 +26,10 @@ export default async function EstimatesPage({ searchParams }: { searchParams: Pr
           <h1 className="text-2xl font-semibold text-navy">Estimations</h1>
           <p className="mt-1 text-sm text-steel">Dossiers en cours, à valider et déjà figés.</p>
         </div>
-        <Button asChild><Link href="/estimations/nouvelle">+ Nouvelle estimation</Link></Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="secondary" asChild><Link href="/estimations/nouvelle">+ Estimation vide</Link></Button>
+          <Button asChild><Link href="/estimations/importer">Nouvelle estimation depuis un appel d&apos;offres</Link></Button>
+        </div>
       </div>
       <section className="rounded-lg border border-line bg-card p-4">
         {projects.length ? <ProjectTable projects={projects} /> : <p className="text-sm text-steel">{query ? `Aucun dossier ne correspond à « ${q} ».` : "Aucune estimation. Créez le premier dossier."}</p>}

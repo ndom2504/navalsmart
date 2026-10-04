@@ -4,6 +4,7 @@ import { financialSummary } from "@/domain/calculations";
 import type { Project, ProjectStatus } from "@/domain/types";
 import { CostSplit } from "@/components/dashboard/cost-split";
 import { TrendChart } from "@/components/dashboard/trend-chart";
+import { ProjectAvatar, projectAvatarUrl } from "@/components/projects/project-avatar";
 import { Badge } from "@/components/ui/badge";
 import { formatCompactMoney, formatMoney } from "@/lib/format";
 import { documentStatusLabels, projectStatusLabels } from "@/lib/labels";
@@ -117,10 +118,10 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-5">
-      <section className="relative min-h-[230px] overflow-hidden rounded-2xl text-white">
+      <section className="relative min-h-[168px] overflow-hidden rounded-2xl text-white sm:min-h-[230px]">
         <img src="/brand/banner-shipyard.jpg" alt="" className="absolute inset-0 h-full w-full object-cover object-[center_45%]" />
         <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(8,24,48,0.78)_0%,rgba(8,24,48,0.42)_48%,rgba(8,24,48,0.18)_100%)]" />
-        <div className="relative flex min-h-[230px] flex-col justify-between gap-6 p-6 sm:p-8 lg:flex-row lg:items-end">
+        <div className="relative flex min-h-[168px] flex-col justify-between gap-6 p-5 sm:min-h-[230px] sm:p-8 lg:flex-row lg:items-end">
           <div>
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Bonjour, {database.user.name}</h1>
             <p className="mt-2 text-white/85">Voici l&apos;état de vos estimations.</p>
@@ -128,7 +129,7 @@ export default async function DashboardPage() {
               <Link href="/estimations/nouvelle" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#1d6fe0] px-4 text-sm font-semibold text-white">
                 <Plus className="h-4 w-4" /> Nouvelle estimation
               </Link>
-              <Link href="/estimations/nouvelle" className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/70 bg-white/10 px-4 text-sm font-semibold text-white">
+              <Link href="/estimations/importer" className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/70 bg-white/10 px-4 text-sm font-semibold text-white">
                 <Upload className="h-4 w-4" /> Importer un appel d&apos;offres
               </Link>
             </div>
@@ -201,7 +202,12 @@ export default async function DashboardPage() {
               <tbody>
                 {projects.slice(0, 5).map((project) => (
                   <tr key={project.id} className="border-t border-[#eef2f6]">
-                    <td className="px-2 py-3 font-medium text-navy">{project.name}</td>
+                    <td className="px-2 py-3 font-medium text-navy">
+                      <span className="flex items-center gap-3">
+                        <ProjectAvatar name={project.name} src={projectAvatarUrl(project)} />
+                        {project.name}
+                      </span>
+                    </td>
                     <td className="px-2 py-3">{project.client}</td>
                     <td className="px-2 py-3">{project.vessel}</td>
                     <td className="px-2 py-3"><Badge tone={statusTone[project.status]}>{projectStatusLabels[project.status]}</Badge></td>
@@ -252,7 +258,7 @@ export default async function DashboardPage() {
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { href: "/estimations/nouvelle", title: "Importer un appel d'offres", text: "PDF, DOCX, XLSX, TXT", icon: FileUp },
+          { href: "/estimations/importer", title: "Importer un appel d'offres", text: "PDF, DOCX, XLSX, TXT", icon: FileUp },
           { href: "/estimations/nouvelle", title: "Générer une estimation", text: "Avec l'assistance de l'IA", icon: Sparkles },
           { href: "/risques", title: "Analyser les risques", text: "Identifier et suivre les risques", icon: ShieldAlert },
           { href: "/rapports", title: "Produire un rapport", text: "Professionnel et complet", icon: ClipboardList },

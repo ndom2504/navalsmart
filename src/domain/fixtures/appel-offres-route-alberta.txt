@@ -1,0 +1,77 @@
+APPEL D’OFFRES CONSTRUCTION D’UN TRONÇON ROUTIER EN ALBERTA
+Référence : AO-AB-2026-027 | Document fictif pour simulation NavalSmart
+# 1. Informations générales
+Maître d’ouvrage : Alberta Infrastructure & Northern Corridor Development Inc.
+Projet : Construction du tronçon routier Highway 63 – Accès industriel Nord
+Localisation : Région de Fort McMurray, Alberta
+Longueur approximative : 12 km
+Durée contractuelle : 18 mois
+Date limite de soumission : 15 décembre 2026 à 14 h 00, heure de l’Alberta
+Type de contrat : Prix forfaitaire avec bordereau de prix unitaires
+# 2. Objet de l’appel d’offres
+Le présent appel d’offres vise la sélection d’un entrepreneur général pour la construction d’un nouveau tronçon routier d’environ 12 km destiné à améliorer l’accès industriel et la connexion au réseau routier régional dans la région de Fort McMurray, Alberta. Les travaux comprennent le déboisement, les terrassements, le drainage, la fondation granulaire, la chaussée asphaltée, la signalisation et la remise en état.
+# 3. Étendue des travaux
+Lot | Travaux | Quantité | Unité
+1 | Mobilisation et installation | 1 | LS
+2 | Déboisement et préparation du terrain | 85 | ha
+3 | Excavation et terrassement | 185 000 | m³
+4 | Remblai et fondation granulaire | 92 000 | m³
+5 | Construction de la chaussée asphaltée | 28 500 | t
+6 | Drainage et ponceaux | 3 200 | m
+7 | Sécurité et signalisation temporaire | 1 | LS
+8 | Marquage et équipements routiers | 12 | km
+9 | Remise en état et démobilisation | 1 | LS
+# 4. Exigences techniques
+• Terrassement : conditions de sol variables; caractérisation géotechnique à confirmer.
+• Granulats : matériaux conformes aux spécifications routières applicables.
+• Asphalte : enrobé routier à chaud; formulation finale à approuver.
+• Drainage : construction de ponceaux, fossés et ouvrages connexes.
+• Circulation : maintien des accès et mise en place d’un plan de gestion de la circulation.
+# 5. Calendrier prévisionnel
+Activité | Début | Fin
+Mobilisation | Mois 1 | Mois 1
+Déboisement / préparation | Mois 1 | Mois 3
+Terrassement | Mois 2 | Mois 8
+Drainage / ponceaux | Mois 3 | Mois 9
+Fondation granulaire | Mois 6 | Mois 11
+Chaussée asphaltée | Mois 10 | Mois 15
+Signalisation / marquage | Mois 14 | Mois 17
+Réception / remise en état | Mois 17 | Mois 18
+# 6. Ressources principales
+Le soumissionnaire doit prévoir les équipes et équipements nécessaires aux travaux. Équipements anticipés : pelles hydrauliques, bouteurs, niveleuses, compacteurs, camions, finisseurs d’asphalte, camions-citernes et équipements de signalisation.
+# 7. Risques identifiés
+Risque | Description | Niveau
+Conditions géotechniques | Sol variable et matériaux impropres possibles | Élevé
+Météo | Gel, neige et précipitations | Élevé
+Approvisionnement | Disponibilité des granulats et de l’asphalte | Moyen
+Circulation | Sécurité des usagers pendant les travaux | Élevé
+Services existants | Localisation à confirmer avant excavation | Moyen
+# 8. Informations manquantes / à confirmer
+• Rapport géotechnique détaillé et sondages définitifs.
+• Plans IFC (Issued for Construction) complets.
+• Localisation et profondeur des services existants.
+• Formulation finale des mélanges bitumineux.
+• Restrictions environnementales et périodes sensibles.
+• Sources de granulats et carrières autorisées.
+# 9. Hypothèses
+• Les emprises nécessaires seront disponibles avant la mobilisation.
+• Les matériaux excavés réutilisables pourront être employés comme remblais lorsqu’ils sont conformes.
+• Les prix incluent main-d’œuvre, équipements, consommables et frais généraux nécessaires.
+• Les conditions de sol imprévues pourront faire l’objet d’une procédure de changement.
+# 10. Livrables attendus
+• Prix détaillé par lot et bordereau de prix unitaires.
+• Méthodologie et séquence d’exécution.
+• Échéancier détaillé et ressources principales.
+• Plan de gestion de la circulation.
+• Plan santé-sécurité-environnement.
+• Liste des exclusions, hypothèses et demandes de clarification.
+• Liste des sous-traitants et fournisseurs proposés.
+# 11. Critères d’évaluation
+• Prix et compétitivité : 35 %
+• Méthodologie et échéancier : 20 %
+• Expérience pertinente : 15 %
+• Santé-sécurité-environnement : 15 %
+• Capacité des ressources et équipements : 10 %
+• Qualité de la soumission : 5 %
+# 12. Clause de simulation
+Document entièrement fictif créé pour tester NavalSmart. Les noms, quantités, dates et exigences ne constituent pas un appel d’offres réel.

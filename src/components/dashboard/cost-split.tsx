@@ -15,7 +15,7 @@ export function CostSplit({
   }
 
   return (
-    <div className="flex flex-col items-center gap-4 sm:flex-row">
+    <div className="flex min-w-0 flex-col items-center gap-4 sm:flex-row">
       <div className="relative h-44 w-44 shrink-0">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -31,12 +31,12 @@ export function CostSplit({
           <p className="text-xs text-steel">Total</p>
         </div>
       </div>
-      <ul className="w-full space-y-2 text-sm">
+      <ul className="w-full min-w-0 space-y-2 text-sm">
         {slices.map((slice) => (
           <li key={slice.name} className="flex items-center justify-between gap-3">
-            <span className="flex items-center gap-2 text-navy">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: slice.color }} />
-              {slice.name}
+            <span className="flex min-w-0 items-center gap-2 text-navy" title={slice.name}>
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: slice.color }} />
+              <span className="truncate">{slice.name}</span>
             </span>
             <span className="tabular-nums text-steel">{Math.round((slice.value / total) * 100)}%</span>
           </li>

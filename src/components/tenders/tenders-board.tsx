@@ -10,6 +10,7 @@ export type TenderRow = {
   id: string;
   reference: string;
   name: string;
+  avatarUrl: string | null;
   client: string;
   vessel: string;
   type: string;
@@ -92,7 +93,7 @@ export function TendersBoard({ rows }: { rows: TenderRow[] }) {
             <h1 className="text-3xl font-semibold">Appels d&apos;offres</h1>
             <p className="mt-1 text-sm text-white/80">Centralisez et analysez vos appels d&apos;offres de construction, réparation et maintenance navale.</p>
           </div>
-          <Link href="/estimations/nouvelle" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#1d6fe0] px-4 text-sm font-semibold">
+          <Link href="/estimations/importer" className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#1d6fe0] px-4 text-sm font-semibold">
             <Plus className="h-4 w-4" /> Nouvel appel d&apos;offres
           </Link>
         </div>
@@ -142,7 +143,7 @@ export function TendersBoard({ rows }: { rows: TenderRow[] }) {
                     <td className="px-3 py-3 text-steel">{(currentPage - 1) * pageSize + index + 1}</td>
                     <td className="px-3 py-3">
                       <span className="flex items-center gap-3">
-                        <img src="/brand/banner-shipyard.jpg" alt="" className="h-10 w-14 rounded-md object-cover" />
+                        <img src={row.avatarUrl ?? "/brand/banner-shipyard.jpg"} alt="" className="h-10 w-14 rounded-md object-cover" />
                         <span>
                           <span className="block text-xs text-steel">{row.reference}</span>
                           <span className="block font-medium text-navy">{row.name}</span>
@@ -177,7 +178,7 @@ export function TendersBoard({ rows }: { rows: TenderRow[] }) {
           <aside className="rounded-2xl border border-[#e6edf4] bg-white p-4 shadow-sm">
             <div className="flex items-start justify-between gap-2">
               <div className="flex gap-3">
-                <img src="/brand/banner-shipyard.jpg" alt="" className="h-14 w-16 rounded-lg object-cover" />
+                <img src={selected.avatarUrl ?? "/brand/banner-shipyard.jpg"} alt="" className="h-14 w-16 rounded-lg object-cover" />
                 <div>
                   <p className="text-xs text-steel">{selected.reference}</p>
                   <p className="font-semibold text-navy">{selected.name}</p>

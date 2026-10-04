@@ -1,3 +1,4 @@
+import { projectAvatarUrl } from "@/components/projects/project-avatar";
 import { TendersBoard, type TenderRow } from "@/components/tenders/tenders-board";
 import { formatBytes, formatDate } from "@/lib/format";
 import { projectTypeLabels } from "@/lib/labels";
@@ -36,6 +37,7 @@ export default async function TendersPage() {
         id: project.id,
         reference: `NS-${project.createdAt.slice(0, 4)}-${project.id.replace(/[^a-z0-9]/gi, "").slice(-4).toUpperCase()}`,
         name: project.name,
+        avatarUrl: projectAvatarUrl(project),
         client: project.client,
         vessel: project.vessel,
         type: project.type,

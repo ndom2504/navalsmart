@@ -3,7 +3,7 @@ import "server-only";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import bcrypt from "bcryptjs";
-import { buildDemoDatabase, buildRealDatabase } from "@/domain/demo";
+import { buildDemoDatabase, buildRealDatabase, CIVIL_TRADES, CIVIL_UNITS } from "@/domain/demo";
 import type { Database, Project, WorkspaceMode } from "@/domain/types";
 
 interface StoreFile {
@@ -39,6 +39,26 @@ function isLegacyDatabase(value: unknown): value is Database {
   if (!value || typeof value !== "object") return false;
   const record = value as Database;
   return Array.isArray(record.projects) && Boolean(record.user?.email);
+}
+
+/** Complète les données enregistrées avant l'ajout du planning, des ordres de travail et de la bibliothèque de coûts. */
+function normalize(store: StoreFile): StoreFile {
+  for (const database of Object.values(store.workspaces)) {
+    if (!database.settings.unitCosts) {
+      database.settings.unitCosts = [];
+      const trades = new Set(database.settings.laborRates.map((rate) => rate.trade));
+      database.settings.laborRates.push(...CIVIL_TRADES.filter((trade) => !trades.has(trade)).map((trade) => ({ trade, hourlyRateCents: 0 })));
+      const units = new Set(database.settings.units);
+      database.settings.units.push(...CIVIL_UNITS.filter((unit) => !units.has(unit)));
+    }
+    database.settings.market ??= { enabled: true, defaultRegion: "CA-QC" };
+    database.aiMarketActivities ??= [];
+    for (const project of database.projects) {
+      project.milestones ??= [];
+      project.workOrders ??= [];
+    }
+  }
+  return store;
 }
 
 function present(database: Database, mode: WorkspaceMode): Database {
@@ -82,7 +102,7 @@ async function loadStore(): Promise<StoreFile> {
   try {
     const raw = await fs.readFile(dataFile, "utf8");
     const parsed: unknown = JSON.parse(raw);
-    if (isStoreFile(parsed)) return parsed;
+    if (isStoreFile(parsed)) return normalize(parsed);
     if (isLegacyDatabase(parsed)) {
       const demo = { ...parsed };
       delete demo.workspaceMode;
@@ -95,7 +115,7 @@ async function loadStore(): Promise<StoreFile> {
         },
       };
       await writeStore(store);
-      return store;
+      return normalize(store);
     }
     throw new Error("Fichier de données illisible.");
   } catch (error) {

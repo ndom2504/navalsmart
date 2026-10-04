@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,12 +12,27 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#071426",
+};
+
 export const metadata: Metadata = {
   title: {
     default: "NavalSmart",
     template: "%s · NavalSmart",
   },
   description: "De l'appel d'offres à l'estimation, avec l'IA. L'estimateur reste décideur.",
+  applicationName: "NavalSmart",
+  appleWebApp: {
+    capable: true,
+    title: "NavalSmart",
+    statusBarStyle: "black-translucent",
+  },
+  formatDetection: { telephone: false },
+  icons: { apple: "/brand/mark.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

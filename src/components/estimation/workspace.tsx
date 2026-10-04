@@ -3,14 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
-import { Check, Database, FolderOpen, Pencil, Plus, ShieldAlert, Share2, TriangleAlert } from "lucide-react";
+import { Check, Database, Download, FileText, FolderOpen, MoreHorizontal, Pencil, Plus, ShieldAlert, Share2, TriangleAlert } from "lucide-react";
 import { financialSummary, resolveLine } from "@/domain/calculations";
 import { completenessScore } from "@/domain/completeness";
+import { MARKET_REGIONS, MARKET_YEAR } from "@/domain/market";
 import { learningNotes, lineTeaching } from "@/domain/learning";
 import type { EquipmentCost, EstimateLine, LaborCost, MaterialCost, MissingInformation, Project, Subcontractor, Supplier, SupplierQuote, WorkPackage } from "@/domain/types";
 import {
   analyzeAction,
   chatAction,
+  costProjectAction,
   decideReviewAction,
   recalculateAction,
   reviewAction,
@@ -27,6 +29,10 @@ import {
   saveSubcontractorsAction,
 } from "@/server/actions";
 import { CostSplit } from "@/components/dashboard/cost-split";
+import { PlanningPanel, StatusBadge, WorkOrdersPanel } from "@/components/planning/project-planning";
+import { projectAvatarUrl } from "@/components/projects/project-avatar";
+import { ProjectAvatarEditor } from "@/components/projects/project-avatar-editor";
+import { DeleteProjectButton } from "@/components/projects/delete-project-button";
 import { TrendChart } from "@/components/dashboard/trend-chart";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -42,6 +48,8 @@ const nav = [
   ["document", "Appel d'offres"],
   ["analysis", "Analyse"],
   ["packages", "Lots"],
+  ["planning", "Planning"],
+  ["workorders", "Ordres de travail"],
   ["estimate", "Estimation"],
   ["labor", "Main-d'œuvre"],
   ["materials", "Matériaux"],
@@ -57,21 +65,42 @@ const nav = [
 ] as const;
 
 const field = "h-10 w-full min-w-36 rounded-md border border-line bg-white px-2 text-sm";
+
+export interface ProjectMarket {
+  /** Marché choisi pour le projet ; null = automatique. */
+  selected: string | null;
+  /** Marché déduit du lieu, de la devise ou du réglage par défaut. */
+  detected: { code: string; label: string } | null;
+  /** Marché appliqué au chiffrage ; null quand le référentiel est désactivé. */
+  active: { code: string; label: string } | null;
+}
 const area = "min-h-20 w-full rounded-md border border-line bg-white px-2 py-2 text-sm";
 
 export function EstimateWorkspace({
   project,
   suppliers,
   weights,
+  unitCostCount,
+  market,
   section,
 }: {
   project: Project;
   suppliers: Supplier[];
   weights: Record<string, number>;
+  unitCostCount: number;
+  market: ProjectMarket;
   section: string;
 }) {
   const router = useRouter();
-  const [current, setCurrent] = useState(section);
+  const [current, setCurrentState] = useState(section);
+  function setCurrent(next: string) {
+    setCurrentState(next);
+    window.history.replaceState(null, "", next === "overview" ? window.location.pathname : `${window.location.pathname}?section=${next}`);
+  }
+  function openSection(next: string) {
+    setCurrent(next);
+    window.requestAnimationFrame(() => window.document.getElementById("section-projet")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  }
   const [lines, setLines] = useState(project.lines);
   const [packages, setPackages] = useState(project.workPackages);
   const [labor, setLabor] = useState(project.labor);
@@ -95,6 +124,7 @@ export function EstimateWorkspace({
   const [stepIndex, setStepIndex] = useState(0);
   const [pending, start] = useTransition();
   const [exportOpen, setExportOpen] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState(project.name);
 
@@ -168,6 +198,9 @@ export function EstimateWorkspace({
   }
 
   const document = project.tender?.documents[0];
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const dated = project.milestones.filter((item): item is typeof item & { date: string } => Boolean(item.date)).sort((a, b) => a.date.localeCompare(b.date));
+  const upcoming = (dated.some((item) => item.date >= todayIso) ? dated.filter((item) => item.date >= todayIso) : dated).slice(0, 4);
   const openMissing = missing.filter((item) => item.status === "OPEN");
   const packageRows = packageCosts(draft, packages, lines);
   const packageTotal = packageRows.reduce((sum, row) => sum + row.cents, 0);
@@ -182,7 +215,8 @@ export function EstimateWorkspace({
     total: Math.round(revision.snapshot.estimatedCents / 100),
     count: 0,
   }));
-  const stage = current === "packages" ? 2 : current === "estimate" || current === "labor" || current === "materials" || current === "equipment" || current === "suppliers" || current === "subcontractors" ? 3 : current === "risks" || current === "assumptions" || current === "missing" || current === "review" ? 4 : current === "history" ? 5 : 1;
+  const avatarSrc = projectAvatarUrl(project);
+  const stage = current === "packages" || current === "planning" || current === "workorders" ? 2 : current === "estimate" || current === "labor" || current === "materials" || current === "equipment" || current === "suppliers" || current === "subcontractors" ? 3 : current === "risks" || current === "assumptions" || current === "missing" || current === "review" ? 4 : current === "history" ? 5 : 1;
   const stages = [
     { label: "Analyse du document", go: () => setCurrent("document") },
     { label: "Lots de travaux", go: () => setCurrent("packages") },
@@ -212,6 +246,8 @@ export function EstimateWorkspace({
         <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(8,24,48,0.82)_0%,rgba(8,24,48,0.55)_55%,rgba(8,24,48,0.28)_100%)]" />
         <div className="relative space-y-4 p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-4">
+            <ProjectAvatarEditor projectId={project.id} name={project.name} src={avatarSrc} compact size="lg" />
             <div className="min-w-0">
               {editingName ? (
                 <input
@@ -237,6 +273,7 @@ export function EstimateWorkspace({
                 <Badge tone={project.status === "VALIDATED" || project.status === "SUBMITTED" ? "success" : project.status === "TO_VALIDATE" ? "warning" : "technical"}>{projectStatusLabels[project.status]}</Badge>
               </div>
             </div>
+            </div>
             <div className="flex flex-wrap gap-2">
               <button type="button" className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 text-sm" onClick={() => { void navigator.clipboard?.writeText(window.location.href); setNotice("Lien de l'estimation copié."); }}>
                 <Share2 className="h-4 w-4" /> Partager
@@ -253,6 +290,20 @@ export function EstimateWorkspace({
               <button type="button" className="inline-flex h-10 items-center rounded-lg bg-[#1d6fe0] px-4 text-sm font-semibold" disabled={pending} onClick={() => run(() => saveProjectAction(project.id, { status: "VALIDATED", validationNote: "Validée par l'estimateur après revue des sources." }))}>
                 Valider l&apos;estimation
               </button>
+              <div className="relative">
+                <button type="button" aria-label="Options du projet" aria-expanded={optionsOpen} className="inline-flex h-10 items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 text-sm" onClick={() => setOptionsOpen((open) => !open)}>
+                  <MoreHorizontal className="h-4 w-4" /> Options
+                </button>
+                {optionsOpen ? (
+                  <div className="absolute right-0 z-20 mt-2 w-64 rounded-lg bg-white p-1 text-sm text-navy shadow-lg">
+                    <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left hover:bg-background" onClick={() => { setOptionsOpen(false); openSection("document"); }}>
+                      <FileText className="h-4 w-4 text-steel" /> Voir le document d&apos;appel d&apos;offres
+                    </button>
+                    <div className="my-1 border-t border-line" />
+                    <DeleteProjectButton projectId={project.id} name={project.name} redirectTo="/estimations" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-danger hover:bg-red-50" />
+                  </div>
+                ) : null}
+              </div>
             </div>
           </div>
           <ol className="flex flex-wrap items-center gap-3 text-sm">
@@ -289,7 +340,7 @@ export function EstimateWorkspace({
                 </div>
               ) : <p className="mt-4 text-sm text-steel">Aucun document importé.</p>}
               <div className="mt-4 flex gap-2">
-                <Button variant="secondary" onClick={() => setCurrent("document")}>Voir le document</Button>
+                <Button variant="secondary" onClick={() => openSection("document")}>Voir le document</Button>
                 <label className="inline-flex h-10 cursor-pointer items-center rounded-md border border-line px-3 text-sm">
                   Remplacer
                   <input className="hidden" type="file" accept=".pdf,.docx,.xlsx,.txt" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); }} />
@@ -312,6 +363,9 @@ export function EstimateWorkspace({
             </article>
             <article className="rounded-2xl border border-[#e6edf4] bg-white p-5 text-sm shadow-sm">
               <h2 className="font-semibold text-navy">Informations du projet</h2>
+              <div className="mt-4">
+                <ProjectAvatarEditor projectId={project.id} name={project.name} src={avatarSrc} size="md" />
+              </div>
               <dl className="mt-4 space-y-2">
                 {[
                   ["Client", project.client],
@@ -336,6 +390,42 @@ export function EstimateWorkspace({
             <button type="button" className="text-left" onClick={() => setCurrent("missing")}><Kpi icon={TriangleAlert} tone="text-[#c2410c] bg-[#fff1e8]" label="Informations à valider" value={String(openMissing.length)} hint="Voir la liste" /></button>
             <button type="button" className="text-left" onClick={() => setCurrent("risks")}><Kpi icon={ShieldAlert} tone="text-[#be123c] bg-[#ffe8ee]" label="Risques identifiés" value={String(project.risks.length)} hint="Voir les risques" /></button>
           </div>
+
+          <article className="rounded-2xl border border-[#e6edf4] bg-white p-5 shadow-sm">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-navy">Planning et ordres de travail</h2>
+              <div className="flex gap-2">
+                <Button variant="secondary" onClick={() => setCurrent("workorders")}>Ordres de travail</Button>
+                <Button onClick={() => setCurrent("planning")}>Ouvrir le planning</Button>
+              </div>
+            </div>
+            <div className="grid gap-5 md:grid-cols-2">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-steel">Prochains jalons</p>
+                {upcoming.length ? (
+                  <ul className="mt-2 space-y-2 text-sm">
+                    {upcoming.map((item) => (
+                      <li key={item.id} className="flex items-center justify-between gap-3">
+                        <span className="text-navy">{item.label}{item.toConfirm ? <span className="ml-2 text-xs text-warning">à confirmer</span> : null}</span>
+                        <span className="whitespace-nowrap tabular-nums text-steel">{formatDate(item.date)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : <p className="mt-2 text-sm text-steel">Aucun jalon daté.</p>}
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-steel">Ordres de travail · {project.workOrders.length}</p>
+                {project.workOrders.length ? (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {(["BLOCKED", "TO_PLAN", "PLANNED", "IN_PROGRESS", "DONE"] as const).map((status) => {
+                      const count = project.workOrders.filter((order) => order.status === status).length;
+                      return count ? <span key={status} className="inline-flex items-center gap-1.5 text-sm"><StatusBadge status={status} /> {count}</span> : null;
+                    })}
+                  </div>
+                ) : <p className="mt-2 text-sm text-steel">Générés automatiquement après l&apos;analyse de l&apos;appel d&apos;offres.</p>}
+              </div>
+            </div>
+          </article>
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.7fr)]">
             <article className="rounded-2xl border border-[#e6edf4] bg-white p-5 shadow-sm">
@@ -400,7 +490,7 @@ export function EstimateWorkspace({
           </details>
         </div>
       ) : (
-        <section className="min-w-0 rounded-2xl border border-[#e6edf4] bg-white p-4 shadow-sm sm:p-5">
+        <section id="section-projet" className="min-w-0 scroll-mt-24 rounded-2xl border border-[#e6edf4] bg-white p-4 shadow-sm sm:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
             <button type="button" className="text-sm font-medium text-[#1d6fe0]" onClick={() => setCurrent("overview")}>Retour à l&apos;estimation</button>
             <div className="flex gap-2 overflow-x-auto text-sm">
@@ -418,8 +508,22 @@ export function EstimateWorkspace({
           {current === "packages" ? (
             <PackagesPanel packages={packages} setPackages={setPackages} pending={pending} onSave={() => run(() => savePackagesAction(project.id, packages))} />
           ) : null}
+          {current === "planning" ? <PlanningPanel project={project} pending={pending} run={run} onOpenOrders={() => setCurrent("workorders")} /> : null}
+          {current === "workorders" ? <WorkOrdersPanel key={project.updatedAt} project={project} pending={pending} run={run} /> : null}
           {current === "estimate" ? (
-            <EstimateTable lines={lines} setLines={setLines} summary={summary} currency={project.currency} pending={pending} onExplain={setExplainId} onSave={() => run(() => saveLinesAction(project.id, lines))} />
+            <EstimateTable
+              lines={lines}
+              setLines={setLines}
+              summary={summary}
+              currency={project.currency}
+              pending={pending}
+              unitCostCount={unitCostCount}
+              market={market}
+              onMarket={(code) => run(() => saveProjectAction(project.id, { marketRegion: code }))}
+              onExplain={setExplainId}
+              onSave={() => run(() => saveLinesAction(project.id, lines))}
+              onCost={() => run(() => costProjectAction(project.id))}
+            />
           ) : null}
           {current === "labor" ? <LaborPanel rows={labor} setRows={setLabor} currency={project.currency} pending={pending} note={notes?.labor} onSave={() => run(() => saveLaborAction(project.id, labor))} /> : null}
           {current === "materials" ? <MaterialsPanel rows={materials} setRows={setMaterials} suppliers={suppliers} currency={project.currency} pending={pending} onSave={() => run(() => saveMaterialsAction(project.id, materials))} /> : null}
@@ -512,30 +616,66 @@ function NumberField({ label, value, onChange }: { label: string; value: number;
 
 function DocumentPanel({ project, pending, analyzing, stepIndex, onUpload, onAnalyze }: { project: Project; pending: boolean; analyzing: boolean; stepIndex: number; onUpload: (file: File) => void; onAnalyze: () => void }) {
   const document = project.tender?.documents[0];
+  const extension = document?.fileName.split(".").pop()?.toLowerCase() ?? "";
+  const fileUrl = document?.storedPath ? `/api/estimates/${project.id}/documents/${document.id}` : null;
+  const dropZone = (
+    <label
+      className={`block cursor-pointer rounded-lg border border-dashed border-line bg-background text-center ${document ? "px-4 py-5" : "px-6 py-10"}`}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => {
+        event.preventDefault();
+        const file = event.dataTransfer.files[0];
+        if (file) onUpload(file);
+      }}
+    >
+      <p className="font-medium text-navy">{document ? "Remplacer le document : déposez un nouveau fichier ici" : "Déposez votre appel d'offres ici"}</p>
+      <p className="mt-1 text-sm text-steel">PDF, DOCX, XLSX, TXT — 20 Mo maximum</p>
+      <input className="mt-3 text-sm" type="file" accept=".pdf,.docx,.xlsx,.txt" onChange={(event) => { const file = event.target.files?.[0]; if (file) onUpload(file); }} />
+    </label>
+  );
   return (
     <div className="space-y-4">
-      <label
-        className="block cursor-pointer rounded-lg border border-dashed border-line bg-background px-6 py-10 text-center"
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={(event) => {
-          event.preventDefault();
-          const file = event.dataTransfer.files[0];
-          if (file) onUpload(file);
-        }}
-      >
-        <p className="font-medium text-navy">Déposez votre appel d&apos;offres ici</p>
-        <p className="mt-1 text-sm text-steel">PDF, DOCX, XLSX, TXT — 20 Mo maximum</p>
-        <input className="mt-4 text-sm" type="file" accept=".pdf,.docx,.xlsx,.txt" onChange={(event) => { const file = event.target.files?.[0]; if (file) onUpload(file); }} />
-      </label>
       {document ? (
-        <div className="grid gap-2 text-sm sm:grid-cols-2">
-          <p>Nom du fichier : {document.fileName}</p>
-          <p>Taille : {formatBytes(document.sizeBytes)}</p>
-          <p>Pages : {document.pageCount ?? "Non déterminé"}</p>
-          <p>Date d&apos;importation : {formatDateTime(document.importedAt)}</p>
-          <p>Statut d&apos;analyse : {documentStatusLabels[document.status]}</p>
-        </div>
-      ) : <p className="text-sm text-steel">Aucun document importé.</p>}
+        <>
+          <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-line p-4">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-red-50 text-[10px] font-semibold text-danger">{extension.toUpperCase()}</span>
+              <div className="min-w-0 text-sm">
+                <p className="truncate font-medium text-navy">{document.fileName}</p>
+                <p className="text-steel">{formatBytes(document.sizeBytes)} · {document.pageCount ? `${document.pageCount} page(s)` : "pages non déterminées"} · importé le {formatDateTime(document.importedAt)}</p>
+                <p className="mt-1"><Badge tone={project.analysis ? "success" : "technical"}>{project.analysis ? "Analysé" : documentStatusLabels[document.status]}</Badge></p>
+              </div>
+            </div>
+            {fileUrl ? (
+              <div className="flex flex-wrap gap-2">
+                {extension === "pdf" || extension === "txt" ? (
+                  <a href={fileUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-2 rounded-md border border-line px-3 text-sm font-medium text-navy hover:bg-background">
+                    <FileText className="h-4 w-4" /> Ouvrir dans un onglet
+                  </a>
+                ) : null}
+                <a href={`${fileUrl}?telecharger`} className="inline-flex h-9 items-center gap-2 rounded-md border border-line px-3 text-sm font-medium text-navy hover:bg-background">
+                  <Download className="h-4 w-4" /> Télécharger l&apos;original
+                </a>
+              </div>
+            ) : null}
+          </div>
+          {fileUrl && extension === "pdf" ? (
+            <iframe src={fileUrl} title={`Aperçu de ${document.fileName}`} className="h-[70vh] w-full rounded-lg border border-line" />
+          ) : null}
+          <div>
+            <p className="mb-2 text-sm font-medium text-navy">Contenu lu par NavalSmart{extension === "pdf" ? " (texte extrait)" : ""}</p>
+            {document.extractedText.trim() ? (
+              <pre className="max-h-[70vh] overflow-auto rounded-lg border border-line bg-background p-4 font-sans text-sm leading-6 whitespace-pre-wrap text-navy">{document.extractedText}</pre>
+            ) : <p className="text-sm text-steel">Aucun texte n&apos;a pu être lu dans ce fichier.</p>}
+          </div>
+          {dropZone}
+        </>
+      ) : (
+        <>
+          {dropZone}
+          <p className="text-sm text-steel">Aucun document importé.</p>
+        </>
+      )}
       <Button disabled={!document || pending} onClick={onAnalyze}>Analyser avec NavalSmart AI</Button>
       {analyzing || stepIndex > 0 ? (
         <ol className="space-y-1 text-sm">
@@ -667,12 +807,37 @@ function PackagesPanel({ packages, setPackages, pending, onSave }: { packages: W
   );
 }
 
-function EstimateTable({ lines, setLines, summary, currency, pending, onExplain, onSave }: { lines: EstimateLine[]; setLines: (value: EstimateLine[]) => void; summary: ReturnType<typeof financialSummary>; currency: string; pending: boolean; onExplain: (id: string) => void; onSave: () => void }) {
+function EstimateTable({ lines, setLines, summary, currency, pending, unitCostCount, market, onMarket, onExplain, onSave, onCost }: { lines: EstimateLine[]; setLines: (value: EstimateLine[]) => void; summary: ReturnType<typeof financialSummary>; currency: string; pending: boolean; unitCostCount: number; market: ProjectMarket; onMarket: (code: string | null) => void; onExplain: (id: string) => void; onSave: () => void; onCost: () => void }) {
+  const proposed = lines.filter((line) => line.status === "AI_GENERATED").length;
+  const fromMarket = lines.filter((line) => line.status === "AI_GENERATED" && /^(Référence marché|Proposition IA)/.test(line.sourceLabel)).length;
   function update(lineId: string, patch: Partial<EstimateLine>) {
     setLines(lines.map((line) => line.id === lineId ? { ...line, ...patch, status: patch.status ?? "USER_MODIFIED" } : line));
   }
   return (
     <div className="space-y-3">
+      <div className="space-y-3 rounded-md bg-background p-3 text-sm">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <label className="text-steel">Marché de référence
+            <select
+              className="mt-1 block h-10 min-w-72 rounded-md border border-line bg-white px-2 text-sm text-navy"
+              value={market.selected ?? ""}
+              disabled={pending}
+              onChange={(event) => onMarket(event.target.value || null)}
+            >
+              <option value="">{market.detected ? `Automatique : ${market.detected.label}` : "Automatique"}</option>
+              {MARKET_REGIONS.map((region) => <option key={region.code} value={region.code}>{region.label} ({region.currency})</option>)}
+            </select>
+          </label>
+          <Button disabled={pending || !proposed} onClick={onCost}>Chiffrer automatiquement</Button>
+        </div>
+        <p className="text-steel">
+          Le chiffrage multiplie les quantités du document par vos coûts unitaires ({unitCostCount} ouvrage{unitCostCount > 1 ? "s" : ""} dans votre bibliothèque)
+          {market.active ? <>, puis par la <strong className="text-navy">référence de marché {market.active.label} {MARKET_YEAR}</strong> : taux chargés par métier, heures et coûts par unité d&apos;ouvrage</> : <>. Le référentiel de marché est désactivé dans les paramètres</>}.
+          {" "}Il s&apos;applique aux {proposed} ligne{proposed > 1 ? "s" : ""} encore proposée{proposed > 1 ? "s" : ""} ; vos lignes vérifiées ou modifiées restent intactes.
+          {" "}<Link href="/parametres?onglet=costs" className="font-semibold text-technical">Taux et bibliothèque</Link>
+        </p>
+        {fromMarket ? <p className="text-xs text-warning">{fromMarket} ligne{fromMarket > 1 ? "s" : ""} chiffrée{fromMarket > 1 ? "s" : ""} avec des valeurs de marché indicatives : vérifiez-les ou remplacez-les par vos propres valeurs.</p> : null}
+      </div>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1280px] text-left text-xs">
           <thead className="border-b border-line text-steel">

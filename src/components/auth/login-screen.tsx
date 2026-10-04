@@ -39,13 +39,13 @@ export function LoginScreen({ email, demoPassword, error }: { email: string; dem
   const [notice, setNotice] = useState<string | null>(null);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#061426] text-white">
+    <div className="relative min-h-dvh overflow-hidden bg-[#061426] text-white">
       <img src="/brand/shipyard.jpg" alt="" className="absolute inset-0 h-full w-full object-cover object-[72%_center]" />
       <div className="absolute inset-0 bg-[linear-gradient(105deg,rgba(4,18,40,0.9)_0%,rgba(7,32,62,0.72)_36%,rgba(8,42,82,0.28)_64%,rgba(5,20,40,0.12)_100%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_78%,rgba(56,160,214,0.18),transparent_34%)]" />
 
-      <div className="relative z-10 grid min-h-screen lg:grid-cols-[minmax(0,1.12fr)_minmax(440px,0.88fr)]">
-        <section className="flex flex-col justify-between px-6 py-8 sm:px-10 lg:px-14 lg:py-10">
+      <div className="relative z-10 grid min-h-dvh lg:grid-cols-[minmax(0,1.12fr)_minmax(440px,0.88fr)]">
+        <section className="hidden flex-col justify-between px-6 py-8 sm:px-10 lg:flex lg:px-14 lg:py-10">
           <div className="flex items-center gap-3">
             <img src="/brand/mark.png" alt="" className="h-14 w-auto sm:h-16" />
             <div>
@@ -102,9 +102,9 @@ export function LoginScreen({ email, demoPassword, error }: { email: string; dem
           </dl>
         </section>
 
-        <section className="relative min-h-screen text-foreground">
+        <section className="relative min-h-dvh pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] text-foreground">
           <div aria-hidden className="pointer-events-none absolute inset-0 bg-[#e8eef5] lg:[clip-path:polygon(92px_0,100%_0,100%_100%,0_100%)] lg:[filter:drop-shadow(-18px_0_24px_rgba(3,12,28,0.28))]" />
-          <div className="relative z-20 flex min-h-screen flex-col">
+          <div className="relative z-20 flex min-h-dvh flex-col">
           <div className="flex justify-end px-6 pt-6 lg:px-10">
             <div className="relative">
               <button
@@ -148,7 +148,7 @@ export function LoginScreen({ email, demoPassword, error }: { email: string; dem
                       required
                       autoComplete="username"
                       defaultValue={email}
-                      className="h-12 w-full rounded-lg border border-[#d7dee7] bg-white pr-3 pl-10 text-sm outline-none focus:border-technical"
+                      className="h-12 w-full rounded-lg border border-[#d7dee7] bg-white pr-3 pl-10 text-base outline-none focus:border-technical"
                     />
                   </span>
                 </label>
@@ -172,7 +172,7 @@ export function LoginScreen({ email, demoPassword, error }: { email: string; dem
                       type={showPassword ? "text" : "password"}
                       required
                       autoComplete="current-password"
-                      className="h-12 w-full rounded-lg border border-[#d7dee7] bg-white pr-11 pl-10 text-sm outline-none focus:border-technical"
+                      className="h-12 w-full rounded-lg border border-[#d7dee7] bg-white pr-11 pl-10 text-base outline-none focus:border-technical"
                     />
                     <button
                       type="button"

@@ -1,5 +1,6 @@
 import { financialSummary } from "@/domain/calculations";
 import type { Project } from "@/domain/types";
+import { ProjectAvatar, projectAvatarUrl } from "@/components/projects/project-avatar";
 import { ActionLink } from "@/components/ui/action-link";
 import { Badge } from "@/components/ui/badge";
 import { formatDate, formatMoney } from "@/lib/format";
@@ -38,7 +39,12 @@ export function ProjectTable({ projects }: { projects: Project[] }) {
             const summary = financialSummary(project);
             return (
               <tr key={project.id} className="border-b border-line last:border-0">
-                <td className="px-3 py-3 font-medium text-navy">{project.name}</td>
+                <td className="px-3 py-3 font-medium text-navy">
+                  <span className="flex items-center gap-3">
+                    <ProjectAvatar name={project.name} src={projectAvatarUrl(project)} />
+                    {project.name}
+                  </span>
+                </td>
                 <td className="px-3 py-3">{project.client}</td>
                 <td className="px-3 py-3">{project.vessel}</td>
                 <td className="px-3 py-3">

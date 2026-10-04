@@ -1,3 +1,4 @@
+import { projectAvatarUrl } from "@/components/projects/project-avatar";
 import { SettingsForm, type SettingsTab } from "@/components/settings/settings-form";
 import { projectStatusLabels } from "@/lib/labels";
 import { readDatabase } from "@/server/store";
@@ -19,6 +20,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
         projects={database.projects.map((project) => ({
           id: project.id,
           name: project.name,
+          avatarUrl: projectAvatarUrl(project),
           client: project.client,
           statusLabel: projectStatusLabels[project.status],
         }))}

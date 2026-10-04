@@ -33,6 +33,10 @@ const userOrigins: CostOrigins = {
   other: "USER",
 };
 
+/** Métiers et unités du génie civil, ajoutés sans taux : l'utilisateur saisit ses propres taux. */
+export const CIVIL_TRADES = ["Opérateur d'engins", "Manœuvre", "Camionneur", "Paveur", "Poseur de conduites", "Monteur de signalisation"];
+export const CIVIL_UNITS = ["m³", "ha", "km", "unités"];
+
 export const defaultSettings = (): AppSettings => ({
   currency: "CAD",
   contingencyPct: 8,
@@ -50,8 +54,11 @@ export const defaultSettings = (): AppSettings => ({
     { trade: "Peintre", hourlyRateCents: 5800 },
     { trade: "Inspecteur", hourlyRateCents: 9500 },
     { trade: "Manutentionnaire", hourlyRateCents: 5200 },
+    ...CIVIL_TRADES.map((trade) => ({ trade, hourlyRateCents: 0 })),
   ],
-  units: ["heures", "jour", "t", "kg", "m", "m²", "L", "forfait"],
+  unitCosts: [],
+  market: { enabled: true, defaultRegion: "CA-QC" },
+  units: ["heures", "jour", "t", "kg", "m", "m²", "L", "forfait", ...CIVIL_UNITS],
   aiModel: "gpt-4.1-mini",
   completenessWeights: {
     scope: 1,
@@ -520,6 +527,8 @@ function buildDemoProject(nowAnalysis: ReturnType<typeof groundAnalysis>): Proje
     risks,
     assumptions,
     missing,
+    milestones: [],
+    workOrders: [],
     reviews: [],
     messages: [],
     revisions: [],
@@ -730,6 +739,8 @@ function satellite(input: {
     risks,
     assumptions: [],
     missing,
+    milestones: [],
+    workOrders: [],
     reviews: [],
     messages: [],
     revisions: [],
@@ -941,6 +952,8 @@ export function emptyProject(input: {
     risks: [],
     assumptions: [],
     missing: [],
+    milestones: [],
+    workOrders: [],
     reviews: [],
     messages: [],
     revisions: [],

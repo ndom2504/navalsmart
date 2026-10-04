@@ -68,19 +68,22 @@ export function AppHeader({
   }
 
   return (
-    <header ref={headerRef} className="no-print flex items-center gap-3 bg-[#f4f7fb]/95 px-4 py-3 backdrop-blur sm:px-6">
+    <header ref={headerRef} className="no-print flex min-w-0 items-center gap-2 bg-[#f4f7fb]/95 px-3 py-2 backdrop-blur sm:gap-3 sm:px-6 sm:py-3">
+      <Link href="/dashboard" className="shrink-0 lg:hidden" aria-label="NavalSmart">
+        <img src="/brand/mark.png" alt="" className="h-8 w-auto" />
+      </Link>
       {view === "sidebar" ? null : (
-        <Link href="/dashboard" className="hidden shrink-0 sm:block" aria-label="NavalSmart">
+        <Link href="/dashboard" className="hidden shrink-0 lg:block" aria-label="NavalSmart">
           <img src="/brand/mark.png" alt="" className="h-8 w-auto" />
         </Link>
       )}
-      <form action="/estimations" className="relative w-full max-w-sm">
+      <form action="/estimations" className="relative min-w-0 w-full max-w-sm flex-1">
         <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-steel" />
         <input
           ref={searchRef}
           name="q"
           placeholder="Projet, offre, navire..."
-          className="h-10 w-full rounded-full border border-[#e3e9f0] bg-white pr-16 pl-10 text-sm text-navy outline-none placeholder:text-steel/80 focus:border-technical"
+          className="h-10 w-full rounded-full border border-[#e3e9f0] bg-white pr-3 pl-10 text-base text-navy outline-none placeholder:text-steel/80 focus:border-technical sm:pr-16 sm:text-sm"
         />
         <kbd className="pointer-events-none absolute top-1/2 right-3 hidden -translate-y-1/2 rounded-md border border-line bg-[#f7f9fb] px-1.5 py-0.5 text-[10px] text-steel sm:inline">
           Ctrl K
@@ -107,7 +110,7 @@ export function AppHeader({
             ) : null}
           </button>
           {alertsOpen ? (
-            <div className="absolute right-0 z-30 mt-2 w-80 overflow-hidden rounded-xl border border-line bg-white shadow-lg">
+            <div className="absolute right-0 z-30 mt-2 w-[min(20rem,calc(100vw-1.5rem))] overflow-hidden rounded-xl border border-line bg-white shadow-lg">
               <div className="flex items-center justify-between border-b border-[#eef2f6] px-3 py-2">
                 <p className="text-sm font-semibold text-navy">Notifications</p>
                 <span className="text-xs text-steel">{alerts.length}</span>
@@ -143,7 +146,7 @@ export function AppHeader({
             </span>
           </button>
           {menuOpen ? (
-            <div className="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-line bg-white p-2 text-sm shadow-lg">
+            <div className="absolute right-0 z-30 mt-2 max-h-[70dvh] w-[min(18rem,calc(100vw-1.5rem))] overflow-y-auto rounded-xl border border-line bg-white p-2 text-sm shadow-lg">
               <div className="px-3 py-2">
                 <p className="font-semibold text-navy">{user.name}</p>
                 <p className="text-xs text-steel">{user.title}</p>
@@ -159,16 +162,16 @@ export function AppHeader({
                 <Briefcase className="h-4 w-4" /> Réel
                 {workspaceMode === "real" ? <span className="ml-auto text-xs font-semibold text-[#1d6fe0]">Actif</span> : null}
               </button>
-              <p className="px-3 pt-2 text-[11px] font-semibold tracking-wide text-steel uppercase">Affichage</p>
-              <button type="button" className="mt-1 flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-navy hover:bg-[#f4f7fb]" onClick={() => onView("sidebar")}>
+              <p className="hidden px-3 pt-2 text-[11px] font-semibold tracking-wide text-steel uppercase lg:block">Affichage</p>
+              <button type="button" className="mt-1 hidden w-full items-center gap-2 rounded-md px-3 py-2 text-left text-navy hover:bg-[#f4f7fb] lg:flex" onClick={() => onView("sidebar")}>
                 <PanelLeft className="h-4 w-4" /> Barre latérale
                 {view === "sidebar" ? <span className="ml-auto text-xs font-semibold text-[#1d6fe0]">Actif</span> : null}
               </button>
-              <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-navy hover:bg-[#f4f7fb]" onClick={() => onView("bottom")}>
+              <button type="button" className="hidden w-full items-center gap-2 rounded-md px-3 py-2 text-left text-navy hover:bg-[#f4f7fb] lg:flex" onClick={() => onView("bottom")}>
                 <PanelBottom className="h-4 w-4" /> Barre du bas
                 {view === "bottom" ? <span className="ml-auto text-xs font-semibold text-[#1d6fe0]">Actif</span> : null}
               </button>
-              <button type="button" className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-navy hover:bg-[#f4f7fb]" onClick={() => onView("top")}>
+              <button type="button" className="hidden w-full items-center gap-2 rounded-md px-3 py-2 text-left text-navy hover:bg-[#f4f7fb] lg:flex" onClick={() => onView("top")}>
                 <PanelTop className="h-4 w-4" /> Barre du haut
                 {view === "top" ? <span className="ml-auto text-xs font-semibold text-[#1d6fe0]">Actif</span> : null}
               </button>

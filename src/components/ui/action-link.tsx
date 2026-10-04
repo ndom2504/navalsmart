@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 
 const className = "relative z-10 inline-flex items-center rounded-md px-2 py-1 text-sm font-semibold text-[#1d6fe0] hover:bg-[#e8f1fb]";

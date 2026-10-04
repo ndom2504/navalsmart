@@ -57,6 +57,21 @@ textarea {
   font: inherit;
 }
 
+@media (max-width: 1023px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
 ::selection {
   background: #d5e4f2;
 }
@@ -75,5 +90,15 @@ textarea {
     padding: 0 !important;
     margin: 0 !important;
     max-width: none !important;
+  }
+
+  .print-page {
+    break-after: page;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .print-page:last-child {
+    break-after: auto;
   }
 }
